@@ -1,12 +1,19 @@
+import AppLayout from "@/_layouts/app";
+import Header from "@/components/header";
 import { GetServerSideProps } from "next";
 import { getSession, useSession } from "next-auth/react";
 
 const Dashboard = () => {
   const session = useSession();
 
-  console.log(session);
-
-  return <main>{session.data?.user?.name}</main>;
+  return (
+    <main>
+      <AppLayout>
+        <Header name={session.data?.user?.name!} />
+        <div className="p-4"> {session.data?.user?.name}</div>
+      </AppLayout>
+    </main>
+  );
 };
 
 export default Dashboard;
