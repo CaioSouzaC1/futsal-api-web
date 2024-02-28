@@ -26,9 +26,6 @@ const formSchema = z.object({
   password: z.string().min(6, {
     message: "A senha precisa ter pelo menos 6 caracteres",
   }),
-  confirm_password: z.string().min(6, {
-    message: "A senha precisa ter pelo menos 6 caracteres",
-  }),
 });
 
 const Home = () => {
@@ -39,19 +36,13 @@ const Home = () => {
     defaultValues: {
       email: "",
       password: "",
-      confirm_password: "",
     },
   });
 
-  async function onSubmit({
-    email,
-    password,
-    confirm_password,
-  }: z.infer<typeof formSchema>) {
+  async function onSubmit({ email, password }: z.infer<typeof formSchema>) {
     const result = await signIn("credentials", {
       email,
       password,
-      confirm_password,
       redirect: false,
       callbackUrl: "/dashboard",
     });
@@ -108,24 +99,6 @@ const Home = () => {
                   render={({ field }) => (
                     <FormItem className="mb-4">
                       <FormLabel>Senha</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="*********"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="confirm_password"
-                  render={({ field }) => (
-                    <FormItem className="mb-4">
-                      <FormLabel>Confirmar senha</FormLabel>
                       <FormControl>
                         <Input
                           type="password"
