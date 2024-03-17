@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { XCircle } from "lucide-react";
+import Link from "next/link";
 
 const NotFound = () => {
   return (
@@ -34,11 +35,12 @@ const NotFound = () => {
             <Accordion type="single" collapsible>
               <AccordionItem value="item-2">
                 <AccordionTrigger>
-                  A Url digitada está correta?
+                  Como eu volto ao sistema?
                 </AccordionTrigger>
                 <AccordionContent>
-                  Confirme a url em que você se encontra, veja se não tem algum
-                  erro.
+                  <Link href={"/"} className="underline">
+                    Clique aqui e vamos te redirecionar!
+                    </Link>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

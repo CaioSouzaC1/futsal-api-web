@@ -19,13 +19,15 @@ const Sidebar = () => {
 
   return (
     <nav
-      className={`flex flex-col h-full py-4 border-r space-y-2 transiton-all duration-500 justify-between items-center ${
+      className={`flex flex-col h-full py-2 border-r space-y-2 transiton-all duration-500 justify-between items-center ${
         isOpen ? "w-64" : "w-20"
       }`}>
       <div className="flex flex-col w-full">
         <div className="flex h-8 border-b w-full text-red-500 font-bold justify-center">
-          <LifeBuoy className="mr-2" />
-          <span className={`${isOpen ? "inline" : "hidden"}`}>futsal.api</span>
+          <LifeBuoy />
+          <span className={`${isOpen ? "inline ml-2" : "hidden"}`}>
+            futsal.api
+          </span>
         </div>
 
         <Item

@@ -15,7 +15,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     <div className="flex h-screen">
       <ProgressBar />
       <Sidebar />
-      <div className="flex flex-1 flex-col gap-4 py-4">
+      <div className="flex flex-1 flex-col gap-4 pt-2 pb-4">
         <Header name={session.data?.user?.user?.name!} />
         {children}
       </div>
