@@ -33,13 +33,14 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { PlusCircle, Settings, X } from "lucide-react";
+import { Link, PlusCircle, Settings, X } from "lucide-react";
 import { GetServerSideProps } from "next";
 import { getSession, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -53,20 +54,14 @@ import { SemiButton } from "@/components/ui/semi-button";
 import toast from "react-hot-toast";
 import { defaultErrorToast } from "@/utils/defaultErrorToast";
 import Loader from "@/components/loader";
-
-interface IPlayersProps {
-  players: IPlayer[];
-}
-
-interface ITeam {
-  id: number;
-  name: string;
-  points: number;
-  scored_goals: number;
-  conceded_goals: number;
-  created_at: string;
-  updated_at: string;
-}
+import { ITeam, ITeamsProps } from "@/interfaces/teams";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface IPlayer {
   id: number;
@@ -79,11 +74,17 @@ interface IPlayer {
   team: ITeam;
 }
 
-const Players = ({ players }: IPlayersProps) => {
+interface IPagePlayerProps {
+  players: IPlayer[];
+  teams: ITeam[];
+}
+
+const Players = ({ players, teams }: IPagePlayerProps) => {
   const session = useSession();
 
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
-  const [playersState, setPlayerState] = useState<IPlayer[]>(players);
+  const [playersState, setPlayerState] = useState<Array<IPlayer>>(players);
+  const [teamsState, setTeamsState] = useState<Array<ITeam>>(teams);
 
   useEffect(() => {
     setIsLoaded(true);
@@ -99,7 +100,7 @@ const Players = ({ players }: IPlayersProps) => {
       toast.success(res.data.message);
 
       setPlayerState((e) => {
-        return e.filter((player) => player.id !== id);
+        return e.filter((player: IPlayer) => player.id !== id);
       });
     } catch (error) {
       console.error(error);
@@ -107,21 +108,31 @@ const Players = ({ players }: IPlayersProps) => {
     }
   };
 
-  async function createPlayer({ name }: z.infer<typeof formSchema>) {
+  async function createPlayer({
+    name,
+    tshirt,
+    team,
+  }: z.infer<typeof formSchema>) {
     try {
+      const teamSplited = team.split("|");
+
       const res = await api.post(
         `/player/`,
         {
           name: name,
+          tshirt: tshirt,
+          team_id: teamSplited[0],
         },
         forceHeaders(session.data?.token)
       );
 
-      toast.success(res.data.message);
+      res.data.data.team = {};
+      res.data.data.team.name = teamSplited[1];
 
       setPlayerState([...playersState, res.data.data]);
 
-      form.reset({ name: "" });
+      form.reset({ name: "", tshirt: "" });
+      toast.success(res.data.message);
     } catch (error) {
       console.error(error);
       defaultErrorToast();
@@ -132,12 +143,25 @@ const Players = ({ players }: IPlayersProps) => {
     name: z.string().min(8, {
       message: "O Nome do jogador precisa ter pelo menos 8 letras!",
     }),
+    tshirt: z
+      .string()
+      .min(1, {
+        message: "O número da camisa deve ser pelo menos 1.",
+      })
+      .max(99, {
+        message: "O número da camisa deve ser no máximo 99.",
+      }),
+    team: z.string().min(1, {
+      message: "Por favor, selecione um time!",
+    }),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
+      tshirt: "",
+      team: "",
     },
   });
 
@@ -189,10 +213,62 @@ const Players = ({ players }: IPlayersProps) => {
                             )}
                           />
 
+                          <FormField
+                            control={form.control}
+                            name="tshirt"
+                            render={({ field }) => (
+                              <FormItem className="mb-4">
+                                <FormLabel>Número da camisa</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="10"
+                                    {...field}
+                                    type="number"
+                                    inputMode="numeric"
+                                    min={1}
+                                    max={99}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="team"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Time</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Selecione o time" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {teamsState.map((e) => {
+                                      return (
+                                        <SelectItem
+                                          key={e.id}
+                                          value={`${e.id}|${e.name}`}>
+                                          {e.name}
+                                        </SelectItem>
+                                      );
+                                    })}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
                           {isLoaded && (
                             <Button
                               variant={"default"}
-                              className="w-full"
+                              className="w-full mt-4"
                               type="submit">
                               Criar
                             </Button>
@@ -268,7 +344,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     const response = await api.get("/player", forceHeaders(session?.token));
 
+    const responseTeams = await api.get("/team", forceHeaders(session?.token));
+
     const players = response.data.data;
+
+    const teams = responseTeams.data.data;
 
     if (!session) {
       return {
@@ -282,6 +362,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     return {
       props: {
         players,
+        teams,
       },
     };
   } catch (error) {
