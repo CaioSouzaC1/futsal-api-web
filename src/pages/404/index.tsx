@@ -34,13 +34,11 @@ const NotFound = () => {
             </Accordion>
             <Accordion type="single" collapsible>
               <AccordionItem value="item-2">
-                <AccordionTrigger>
-                  Como eu volto ao sistema?
-                </AccordionTrigger>
+                <AccordionTrigger>Como eu volto ao sistema?</AccordionTrigger>
                 <AccordionContent>
-                  <Link href={"/"} className="underline">
+                  <Link href={"/dashboard"} className="underline">
                     Clique aqui e vamos te redirecionar!
-                    </Link>
+                  </Link>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

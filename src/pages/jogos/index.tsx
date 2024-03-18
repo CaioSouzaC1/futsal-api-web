@@ -62,45 +62,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { IGame } from "@/interfaces/games";
 
-interface IPlayer {
-  id: number;
-  name: string;
-  tshirt: number;
-  team_id: number;
-  created_at: string;
-  updated_at: string;
-  players: any[];
-  team: ITeam;
-}
-
-interface IPagePlayerProps {
-  players: IPlayer[];
+interface IPageGamesProps {
+  games: IGame[];
   teams: ITeam[];
 }
 
-const Players = ({ players, teams }: IPagePlayerProps) => {
+const Games = ({ games, teams }: IPageGamesProps) => {
   const session = useSession();
 
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
-  const [playersState, setPlayerState] = useState<Array<IPlayer>>(players);
+  const [gamesState, setGamestate] = useState<Array<IGame>>(games);
   const [teamsState, setTeamsState] = useState<Array<ITeam>>(teams);
 
   useEffect(() => {
     setIsLoaded(true);
   }, []);
 
-  const deleteTeam = async (id: number) => {
+  const deleteGame = async (id: number) => {
     try {
       const res = await api.delete(
-        `/player/${id}`,
+        `/game/${id}`,
         forceHeaders(session.data?.token)
       );
 
       toast.success(res.data.message);
 
-      setPlayerState((e) => {
-        return e.filter((player: IPlayer) => player.id !== id);
+      setGamestate((e) => {
+        return e.filter((game: IGame) => game.id !== id);
       });
     } catch (error) {
       console.error(error);
@@ -108,7 +98,7 @@ const Players = ({ players, teams }: IPagePlayerProps) => {
     }
   };
 
-  async function createPlayer({
+  async function createGame({
     name,
     tshirt,
     team,
@@ -117,7 +107,7 @@ const Players = ({ players, teams }: IPagePlayerProps) => {
       const teamSplited = team.split("|");
 
       const res = await api.post(
-        `/player/`,
+        `/game/`,
         {
           name: name,
           tshirt: tshirt,
@@ -129,7 +119,7 @@ const Players = ({ players, teams }: IPagePlayerProps) => {
       res.data.data.team = {};
       res.data.data.team.name = teamSplited[1];
 
-      setPlayerState([...playersState, res.data.data]);
+      setGamestate([...gamesState, res.data.data]);
 
       form.reset({ name: "", tshirt: "" });
       toast.success(res.data.message);
@@ -181,7 +171,7 @@ const Players = ({ players, teams }: IPagePlayerProps) => {
         <Card className="mx-4">
           <CardHeader>
             <CardTitle className="w-full flex justify-between">
-              <span>Jogadores</span>
+              <span>Jogos</span>
               <Dialog>
                 <DialogTrigger>
                   <SemiButton>
@@ -190,12 +180,12 @@ const Players = ({ players, teams }: IPagePlayerProps) => {
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Cadastrar novo jogador!</DialogTitle>
+                    <DialogTitle>Cadastrar novo jogo!</DialogTitle>
                     <DialogDescription>
                       <Form {...form}>
                         <form
                           className="w-full"
-                          onSubmit={form.handleSubmit(createPlayer)}>
+                          onSubmit={form.handleSubmit(createGame)}>
                           <FormField
                             control={form.control}
                             name="name"
@@ -288,25 +278,25 @@ const Players = ({ players, teams }: IPagePlayerProps) => {
               </Dialog>
             </CardTitle>
             <CardDescription>
-              Lista de todos os jogadores cadastrados.
+              Lista de todos os jogos cadastrados.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[40%]">Nome</TableHead>
-                  <TableHead>Camisa</TableHead>
-                  <TableHead className="w-[40%]">Time</TableHead>
+                  <TableHead>Gols do Time da casa</TableHead>
+                  <TableHead>Gols do Time da visitante</TableHead>
+                  <TableHead className="w-[40%]">Data</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {playersState.map((player) => (
-                  <TableRow key={player.id}>
-                    <TableCell className="font-medium">{player.name}</TableCell>
-                    <TableCell>{player.tshirt}</TableCell>
-                    <TableCell>{player.team.name}</TableCell>
+                {gamesState.map((game) => (
+                  <TableRow key={game.id}>
+                    <TableCell>{game.home_team_goals}</TableCell>
+                    <TableCell>{game.visitor_team_goals}</TableCell>
+                    <TableCell className="font-medium">{game.date}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger>
@@ -320,7 +310,7 @@ const Players = ({ players, teams }: IPagePlayerProps) => {
                         <DropdownMenuContent>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            onClick={() => deleteTeam(player.id)}
+                            onClick={() => deleteGame(game.id)}
                             className="cursor-pointer text-red-500">
                             Deletar
                           </DropdownMenuItem>
@@ -342,11 +332,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   try {
     const session = await getSession(context);
 
-    const response = await api.get("/player", forceHeaders(session?.token));
+    const response = await api.get("/game", forceHeaders(session?.token));
 
     const responseTeams = await api.get("/team", forceHeaders(session?.token));
 
-    const players = response.data.data;
+    const games = response.data.data;
 
     const teams = responseTeams.data.data;
 
@@ -361,7 +351,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     return {
       props: {
-        players,
+        games,
         teams,
       },
     };
@@ -369,10 +359,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     console.log(error);
     return {
       props: {
-        players: [],
+        games: [],
+        teams: [],
       },
     };
   }
 };
 
-export default Players;
+export default Games;
