@@ -9,12 +9,12 @@
 ![Tela de dashboard](public/images/dashboard.png)
 
 ### Tela de jogadores
-![Tela de jogadores](public/images/player.png)
+![Tela de jogadores](public/images/players.png)
 
 ### Tela de jogadores - Criando jogador
-![Tela de jogadores](public/images/player-2.png)
+![Tela de jogadores](public/images/players-2.png)
 
 ### Tela de jogadores - Deletando jogador
-![Tela de jogadores](public/images/player-3.png)
+![Tela de jogadores](public/images/players-3.png)
 
 ## Feito por Caio Souza 👨‍💻
